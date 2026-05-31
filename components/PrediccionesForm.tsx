@@ -32,7 +32,8 @@ type Props = {
 function formatFecha(iso: string) {
   const d = new Date(iso)
   return d.toLocaleDateString('es-MX', {
-    weekday: 'short', day: 'numeric', month: 'short',
+    weekday: 'long', day: 'numeric', month: 'long',
+    timeZone: 'America/Mazatlan',
   })
 }
 

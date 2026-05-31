@@ -19,7 +19,10 @@ type Props = { fases: Fase[]; partidos: Partido[] }
 
 function formatFecha(iso: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
+  return d.toLocaleDateString('es-MX', {
+    weekday: 'long', day: 'numeric', month: 'long',
+    timeZone: 'America/Mazatlan',
+  })
 }
 
 export default function ResultadosForm({ fases, partidos }: Props) {
