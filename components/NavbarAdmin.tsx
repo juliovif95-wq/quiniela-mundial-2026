@@ -22,6 +22,7 @@ export default function NavbarAdmin({ nombre }: Props) {
     { href: '/admin/fases', label: 'Fases', icon: '🔄' },
     { href: '/admin/escuelas', label: 'Escuelas', icon: '🏫' },
     { href: '/admin/alumnos', label: 'Alumnos', icon: '👥' },
+    { href: '/admin/top50', label: 'Top 50', icon: '🏆' },
   ]
 
   return (
