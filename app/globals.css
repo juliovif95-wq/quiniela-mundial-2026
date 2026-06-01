@@ -1,11 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --verde: #16a34a;
-  --verde-oscuro: #15803d;
-  --dorado: #ca8a04;
+@theme {
+  --color-mundial-azul: #003DA5;
+  --color-mundial-azul-oscuro: #002070;
+  --color-mundial-rojo: #C8102E;
+  --color-mundial-dorado: #FFD700;
+  --color-mundial-claro: #E8F0FE;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Arial', Helvetica, sans-serif;
+}
+
+/* Gradiente oficial Mundial 2026 */
+.grad-mundial {
+  background: linear-gradient(135deg, #002070 0%, #003DA5 50%, #C8102E 100%);
+}
+
+.grad-mundial-suave {
+  background: linear-gradient(135deg, #002070 0%, #003DA5 70%, #8B1020 100%);
+}
+
+/* Animación hover deportiva */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 61, 165, 0.2);
+}
+
+/* Tarjeta de partido */
+.card-partido {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-partido:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Input de marcador */
+.input-gol {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input-gol:focus {
+  border-color: #003DA5;
+  box-shadow: 0 0 0 3px rgba(0, 61, 165, 0.15);
+}
+
+/* Botón principal */
+.btn-mundial {
+  background: linear-gradient(135deg, #003DA5, #0050CC);
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+.btn-mundial:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+.btn-mundial:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Botón rojo */
+.btn-rojo {
+  background: linear-gradient(135deg, #C8102E, #E01535);
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+.btn-rojo:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
 }

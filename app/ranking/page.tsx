@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import NavbarAlumno from '@/components/NavbarAlumno'
+import SiluetaJugador from '@/components/SiluetaJugador'
 
 export default async function RankingPage() {
   const supabase = await createClient()
@@ -12,7 +13,6 @@ export default async function RankingPage() {
     .select('nombre_completo, escuela_id, escuelas(nombre, logo_url)')
     .eq('id', user.id)
     .single()
-
   if (!perfil) redirect('/auth/login')
 
   const { data: ranking } = await supabase
@@ -25,72 +25,98 @@ export default async function RankingPage() {
   const escuela = (perfil.escuelas as unknown as { nombre: string; logo_url: string | null } | null)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f0f4ff]">
       <NavbarAlumno
         nombre={perfil.nombre_completo}
         escuela={escuela?.nombre ?? ''}
       />
+
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Mi posición */}
+
+        {/* Mi posición destacada */}
         {miPosicion && (
-          <div className="bg-green-600 text-white rounded-2xl p-4 mb-6 shadow flex items-center gap-4">
-            <div className="text-5xl font-black">#{miPosicion.posicion}</div>
-            <div>
-              <p className="text-green-100 text-sm">Mi posición en</p>
-              <p className="font-bold">{escuela?.nombre}</p>
-              <p className="text-2xl font-black">{miPosicion.puntos_totales} pts</p>
+          <div className="rounded-3xl overflow-hidden shadow-xl mb-6 relative">
+            <div className="grad-mundial p-5 relative overflow-hidden">
+              <SiluetaJugador
+                pose="celebra"
+                className="absolute right-0 bottom-0 h-32 text-white opacity-10 translate-x-8"
+              />
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-16 h-16 rounded-2xl bg-[#FFD700] flex items-center justify-center shadow-lg flex-shrink-0">
+                  <span className="text-3xl font-black text-[#002070]">
+                    {miPosicion.posicion === 1 ? '🥇' : miPosicion.posicion === 2 ? '🥈' : miPosicion.posicion === 3 ? '🥉' : `#${miPosicion.posicion}`}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-blue-200 text-xs font-bold uppercase tracking-wider">Mi posición en</p>
+                  <p className="text-white font-black text-base leading-tight">{escuela?.nombre}</p>
+                  <p className="text-[#FFD700] text-3xl font-black leading-none mt-1">
+                    {miPosicion.puntos_totales} <span className="text-lg text-white/60">pts</span>
+                  </p>
+                </div>
+              </div>
             </div>
+            <div className="h-1 bg-[#C8102E]" />
           </div>
         )}
 
-        <h2 className="text-lg font-bold text-gray-800 mb-3">
-          🏆 Tabla de posiciones — {escuela?.nombre}
-        </h2>
+        {/* Encabezado tabla */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-xl bg-[#FFD700] flex items-center justify-center shadow">
+            <span className="text-lg">🏆</span>
+          </div>
+          <div>
+            <h2 className="font-black text-gray-800 text-lg leading-none">Tabla de posiciones</h2>
+            <p className="text-gray-400 text-xs">{escuela?.nombre}</p>
+          </div>
+        </div>
 
-        <div className="bg-white rounded-2xl shadow overflow-hidden">
+        {/* Tabla */}
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
           {(ranking ?? []).length === 0 ? (
-            <p className="text-center text-gray-500 py-8">
-              Aún no hay puntos registrados.
-            </p>
+            <div className="text-center py-16 text-gray-400">
+              <span className="text-5xl block mb-3">🏆</span>
+              <p className="font-medium">Aún no hay puntos registrados.</p>
+              <p className="text-sm">¡El torneo comenzará pronto!</p>
+            </div>
           ) : (
-            <table className="w-full">
-              <thead className="bg-green-700 text-white">
-                <tr>
-                  <th className="py-3 px-4 text-left text-sm font-bold">#</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold">Alumno</th>
-                  <th className="py-3 px-4 text-left text-sm font-bold hidden sm:table-cell">Grado</th>
-                  <th className="py-3 px-4 text-right text-sm font-bold">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(ranking ?? []).map((r, i) => {
-                  const esYo = r.usuario_id === user.id
-                  const medalias: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
-                  return (
-                    <tr
-                      key={r.usuario_id}
-                      className={`border-t border-gray-100 ${esYo ? 'bg-green-50' : i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                    >
-                      <td className="py-3 px-4 font-bold text-gray-600">
-                        {medalias[r.posicion] ?? r.posicion}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`font-medium text-sm ${esYo ? 'text-green-700 font-bold' : 'text-gray-800'}`}>
-                          {r.nombre_completo}
-                          {esYo && <span className="ml-1 text-xs text-green-600">(yo)</span>}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-500 hidden sm:table-cell">
-                        {r.grado}
-                      </td>
-                      <td className="py-3 px-4 text-right font-black text-green-700">
-                        {r.puntos_totales}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <>
+              {/* Header */}
+              <div className="bg-[#002070] text-white px-4 py-3 flex items-center text-xs font-black uppercase tracking-wider">
+                <span className="w-10">#</span>
+                <span className="flex-1">Alumno</span>
+                <span className="hidden sm:block w-32 text-center">Grado</span>
+                <span className="w-16 text-right">Pts</span>
+              </div>
+
+              {(ranking ?? []).map((r, i) => {
+                const esYo = r.usuario_id === user.id
+                const pos = r.posicion
+                const medallas: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
+                return (
+                  <div
+                    key={r.usuario_id}
+                    className={`flex items-center px-4 py-3 border-b border-gray-50 transition-colors ${
+                      esYo
+                        ? 'bg-[#E8F0FE] border-l-4 border-l-[#003DA5]'
+                        : i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                    }`}
+                  >
+                    <span className={`w-10 text-base font-black ${pos <= 3 ? '' : 'text-gray-400 text-sm'}`}>
+                      {medallas[pos] ?? pos}
+                    </span>
+                    <span className={`flex-1 text-sm font-bold ${esYo ? 'text-[#003DA5]' : 'text-gray-800'}`}>
+                      {r.nombre_completo}
+                      {esYo && <span className="ml-2 text-xs bg-[#003DA5] text-white px-1.5 py-0.5 rounded-full font-bold">yo</span>}
+                    </span>
+                    <span className="hidden sm:block w-32 text-center text-xs text-gray-400">{r.grado}</span>
+                    <span className={`w-16 text-right text-lg font-black ${esYo ? 'text-[#003DA5]' : 'text-gray-700'}`}>
+                      {r.puntos_totales}
+                    </span>
+                  </div>
+                )
+              })}
+            </>
           )}
         </div>
       </main>
