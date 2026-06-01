@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import ResetearPasswordModal from '@/components/ResetearPasswordModal'
 
 export default async function AlumnosPage() {
   const supabase = await createClient()
@@ -26,6 +27,7 @@ export default async function AlumnosPage() {
                 <th className="py-3 px-4 text-left hidden md:table-cell">Grado</th>
                 <th className="py-3 px-4 text-left hidden md:table-cell">Escuela</th>
                 <th className="py-3 px-4 text-left hidden lg:table-cell">Celular</th>
+                <th className="py-3 px-4 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -38,6 +40,9 @@ export default async function AlumnosPage() {
                     {(a.escuelas as unknown as { nombre: string } | null)?.nombre ?? '—'}
                   </td>
                   <td className="py-3 px-4 text-gray-500 hidden lg:table-cell">{a.celular}</td>
+                  <td className="py-3 px-4">
+                    <ResetearPasswordModal alumnoId={a.id} nombreAlumno={a.nombre_completo} />
+                  </td>
                 </tr>
               ))}
             </tbody>
