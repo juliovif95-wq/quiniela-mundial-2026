@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-type Props = { nombre: string; escuela: string }
+type Props = { nombre: string; escuela: string; logoUrl?: string | null }
 
-export default function NavbarAlumno({ nombre, escuela }: Props) {
+export default function NavbarAlumno({ nombre, escuela, logoUrl }: Props) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -31,11 +32,22 @@ export default function NavbarAlumno({ nombre, escuela }: Props) {
         {/* Header con logo y usuario */}
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#C8102E] flex items-center justify-center flex-shrink-0">
-              <span className="text-lg">⚽</span>
+            {/* Logo de la escuela o ícono por defecto */}
+            <div className="w-10 h-10 rounded-full bg-[#C8102E] flex items-center justify-center flex-shrink-0 overflow-hidden shadow-md">
+              {logoUrl ? (
+                <Image
+                  src={logoUrl}
+                  alt={`Logo de ${escuela}`}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-lg">⚽</span>
+              )}
             </div>
             <div>
-              <p className="text-white font-black text-sm uppercase tracking-wide leading-none">
+              <p className="text-white font-black text-sm uppercase tracking-wide leading-none font-display">
                 Quiniela Mundial
               </p>
               <p className="text-[#FFD700] text-xs font-bold tracking-wider">2026</p>
@@ -44,8 +56,8 @@ export default function NavbarAlumno({ nombre, escuela }: Props) {
 
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-white text-xs font-bold leading-none truncate max-w-[120px]">{nombre}</p>
-              <p className="text-blue-300 text-xs truncate max-w-[120px]">{escuela}</p>
+              <p className="text-white text-xs font-bold leading-none truncate max-w-[140px]">{nombre}</p>
+              <p className="text-blue-300 text-xs truncate max-w-[140px]">{escuela}</p>
             </div>
             <button
               onClick={cerrarSesion}

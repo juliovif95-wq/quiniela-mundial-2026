@@ -21,6 +21,16 @@ export default async function RankingPage() {
     .eq('escuela_id', perfil.escuela_id)
     .order('posicion')
 
+  // Obtener tipo_usuario de cada participante del ranking
+  const { data: tiposUsuario } = await supabase
+    .from('perfiles')
+    .select('id, tipo_usuario')
+    .in('id', (ranking ?? []).map(r => r.usuario_id))
+
+  const tipoMap: Record<string, string> = Object.fromEntries(
+    (tiposUsuario ?? []).map(p => [p.id, p.tipo_usuario ?? 'alumno'])
+  )
+
   const miPosicion = ranking?.find(r => r.usuario_id === user.id)
   const escuela = (perfil.escuelas as unknown as { nombre: string; logo_url: string | null } | null)
 
@@ -29,6 +39,7 @@ export default async function RankingPage() {
       <NavbarAlumno
         nombre={perfil.nombre_completo}
         escuela={escuela?.nombre ?? ''}
+        logoUrl={escuela?.logo_url ?? null}
       />
 
       <main className="max-w-2xl mx-auto px-4 py-6">
@@ -84,13 +95,14 @@ export default async function RankingPage() {
               {/* Header */}
               <div className="bg-[#002070] text-white px-4 py-3 flex items-center text-xs font-black uppercase tracking-wider">
                 <span className="w-10">#</span>
-                <span className="flex-1">Alumno</span>
+                <span className="flex-1">Participante</span>
                 <span className="hidden sm:block w-32 text-center">Grado</span>
                 <span className="w-16 text-right">Pts</span>
               </div>
 
               {(ranking ?? []).map((r, i) => {
                 const esYo = r.usuario_id === user.id
+                const esMaestro = tipoMap[r.usuario_id] === 'maestro'
                 const pos = r.posicion
                 const medallas: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
                 return (
@@ -105,9 +117,10 @@ export default async function RankingPage() {
                     <span className={`w-10 text-base font-black ${pos <= 3 ? '' : 'text-gray-400 text-sm'}`}>
                       {medallas[pos] ?? pos}
                     </span>
-                    <span className={`flex-1 text-sm font-bold ${esYo ? 'text-[#003DA5]' : 'text-gray-800'}`}>
+                    <span className={`flex-1 text-sm font-bold leading-tight ${esYo ? 'text-[#003DA5]' : 'text-gray-800'}`}>
                       {r.nombre_completo}
                       {esYo && <span className="ml-2 text-xs bg-[#003DA5] text-white px-1.5 py-0.5 rounded-full font-bold">yo</span>}
+                      {esMaestro && <span className="ml-1.5 badge-maestro">Maestro</span>}
                     </span>
                     <span className="hidden sm:block w-32 text-center text-xs text-gray-400">{r.grado}</span>
                     <span className={`w-16 text-right text-lg font-black ${esYo ? 'text-[#003DA5]' : 'text-gray-700'}`}>

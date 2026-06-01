@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import SiluetaJugador from '@/components/SiluetaJugador'
+import LogoQuiniela from '@/components/LogoQuiniela'
 
 type Escuela = { id: string; nombre: string }
 
@@ -21,6 +22,7 @@ export default function RegistroPage() {
   const [form, setForm] = useState({
     celular: '', nombre_completo: '', escuela_id: '',
     grado: '', usuario: '', password: '', password2: '',
+    tipo_usuario: 'alumno' as 'alumno' | 'maestro',
   })
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function RegistroPage() {
       celular: form.celular,
       usuario: form.usuario.toLowerCase().trim(),
       rol: 'alumno',
+      tipo_usuario: form.tipo_usuario,
     })
 
     if (perfilError) {
@@ -81,124 +84,176 @@ export default function RegistroPage() {
   return (
     <div className="min-h-screen grad-mundial flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden">
 
+      {/* Patrón de puntos de fondo */}
+      <div className="absolute inset-0 bg-dots pointer-events-none" />
+
+      {/* Siluetas decorativas */}
       <SiluetaJugador
         pose="corre"
-        className="absolute right-0 bottom-0 h-[45vh] text-white opacity-10 translate-x-1/3"
+        className="absolute right-0 bottom-0 h-[48vh] text-white opacity-[0.08] translate-x-1/3"
       />
-      <div className="absolute top-0 left-0 right-0 h-1 bg-[#C8102E]" />
+      <SiluetaJugador
+        pose="cabeceo"
+        className="absolute left-0 bottom-0 h-[38vh] text-white opacity-[0.07] -translate-x-1/4"
+      />
+      <SiluetaJugador
+        pose="salta"
+        className="absolute right-[12%] bottom-[12vh] h-[24vh] text-white opacity-[0.05]"
+      />
 
-      <div className="w-full max-w-sm relative z-10">
+      {/* Estrellas decorativas */}
+      <div className="absolute top-14 right-1/4 text-[#FFD700] text-2xl opacity-20 animate-pulse-soft">★</div>
+      <div className="absolute top-10 left-1/3 text-[#FFD700] text-base opacity-15 animate-pulse-soft" style={{ animationDelay: '1s' }}>★</div>
 
-        <div className="text-center mb-6">
-          <span className="text-3xl">⚽</span>
-          <h1 className="text-3xl font-black text-white uppercase tracking-wide leading-none mt-2">
-            Quiniela
-          </h1>
-          <p className="text-[#FFD700] font-bold tracking-widest text-sm">MUNDIAL 2026</p>
+      {/* Banda superior */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#C8102E] via-[#FF2040] to-[#C8102E]" />
+
+      <div className="w-full max-w-sm relative z-10 animate-fade-in-up">
+
+        {/* Logo SVG */}
+        <div className="flex justify-center mb-5">
+          <LogoQuiniela className="w-24 h-auto drop-shadow-[0_8px_24px_rgba(0,0,0,0.5)]" />
         </div>
 
-        <div className="bg-white rounded-3xl shadow-2xl p-6">
-          <h2 className="text-xl font-black text-[#002070] uppercase tracking-wide mb-1">
-            Crear mi cuenta
-          </h2>
-          <p className="text-gray-400 text-sm mb-5">Llena todos los campos para registrarte</p>
+        <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] overflow-hidden border border-white/30">
+          {/* Barra dorada superior */}
+          <div className="h-1.5 bg-gradient-to-r from-[#FFD700] via-[#FFF8DC] to-[#FFD700]" />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="p-6">
+            <h2 className="font-display text-2xl text-[#002070] uppercase tracking-wide mb-1">
+              Crear mi cuenta
+            </h2>
+            <p className="text-gray-400 text-sm mb-5">Llena todos los campos para registrarte</p>
 
-            <Field label="📱 Número de celular">
-              <input
-                type="tel" value={form.celular} onChange={e => set('celular', e.target.value)}
-                placeholder="10 dígitos, ej: 6641234567"
-                required maxLength={10}
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
-              />
-            </Field>
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-            <Field label="👤 Nombre completo">
-              <input
-                type="text" value={form.nombre_completo} onChange={e => set('nombre_completo', e.target.value)}
-                placeholder="Nombre y apellidos"
-                required
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
-              />
-            </Field>
-
-            <Field label="🏫 Mi escuela">
-              <select
-                value={form.escuela_id} onChange={e => set('escuela_id', e.target.value)}
-                required
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol bg-white"
-              >
-                <option value="">Selecciona tu escuela</option>
-                {escuelas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-              </select>
-            </Field>
-
-            <Field label="📚 Grado escolar">
-              <select
-                value={form.grado} onChange={e => set('grado', e.target.value)}
-                required
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol bg-white"
-              >
-                <option value="">Selecciona tu grado</option>
-                {GRADOS.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-            </Field>
-
-            <Field label="🔑 Elige tu usuario" hint="Solo letras, números y _ (guión bajo)">
-              <input
-                type="text" value={form.usuario} onChange={e => set('usuario', e.target.value)}
-                placeholder="ej: juanito123"
-                required
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
-              />
-            </Field>
-
-            <Field label="🔒 Contraseña" hint="Mínimo 6 caracteres">
-              <input
-                type="password" value={form.password} onChange={e => set('password', e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
-              />
-            </Field>
-
-            <Field label="🔒 Repite tu contraseña">
-              <input
-                type="password" value={form.password2} onChange={e => set('password2', e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
-              />
-            </Field>
-
-            {error && (
-              <div className="bg-red-50 border-l-4 border-[#C8102E] text-red-700 rounded-xl px-4 py-3 text-sm font-medium">
-                {error}
+              {/* Selector alumno / maestro */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  ¿Eres alumno o maestro?
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => set('tipo_usuario', 'alumno')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${
+                      form.tipo_usuario === 'alumno'
+                        ? 'bg-[#003DA5] border-[#003DA5] text-white shadow-md'
+                        : 'bg-white border-gray-200 text-gray-500 hover:border-[#003DA5]'
+                    }`}
+                  >
+                    <span>🎒</span> Soy alumno
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set('tipo_usuario', 'maestro')}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${
+                      form.tipo_usuario === 'maestro'
+                        ? 'bg-[#7c3aed] border-[#7c3aed] text-white shadow-md'
+                        : 'bg-white border-gray-200 text-gray-500 hover:border-[#7c3aed]'
+                    }`}
+                  >
+                    <span>📋</span> Soy maestro
+                  </button>
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={cargando}
-              className="w-full btn-mundial text-white font-black py-3.5 rounded-xl text-base uppercase tracking-wide shadow-lg disabled:opacity-50"
-            >
-              {cargando ? 'Creando cuenta...' : 'Crear mi cuenta →'}
-            </button>
-          </form>
+              <Field label="📱 Número de celular">
+                <input
+                  type="tel" value={form.celular} onChange={e => set('celular', e.target.value)}
+                  placeholder="10 dígitos, ej: 6641234567"
+                  required maxLength={10}
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
+                />
+              </Field>
 
-          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-            <p className="text-gray-500 text-sm">
-              ¿Ya tienes cuenta?{' '}
-              <Link href="/auth/login" className="text-[#003DA5] font-bold hover:text-[#C8102E] transition-colors">
-                Entrar aquí
-              </Link>
-            </p>
+              <Field label="👤 Nombre completo">
+                <input
+                  type="text" value={form.nombre_completo} onChange={e => set('nombre_completo', e.target.value)}
+                  placeholder="Nombre y apellidos"
+                  required
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
+                />
+              </Field>
+
+              <Field label="🏫 Mi escuela">
+                <select
+                  value={form.escuela_id} onChange={e => set('escuela_id', e.target.value)}
+                  required
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol bg-white"
+                >
+                  <option value="">Selecciona tu escuela</option>
+                  {escuelas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                </select>
+              </Field>
+
+              <Field label="📚 Grado escolar">
+                <select
+                  value={form.grado} onChange={e => set('grado', e.target.value)}
+                  required
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol bg-white"
+                >
+                  <option value="">Selecciona tu grado</option>
+                  {GRADOS.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </Field>
+
+              <Field label="🔑 Elige tu usuario" hint="Solo letras, números y _ (guión bajo)">
+                <input
+                  type="text" value={form.usuario} onChange={e => set('usuario', e.target.value)}
+                  placeholder="ej: juanito123"
+                  required
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
+                />
+              </Field>
+
+              <Field label="🔒 Contraseña" hint="Mínimo 6 caracteres">
+                <input
+                  type="password" value={form.password} onChange={e => set('password', e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
+                />
+              </Field>
+
+              <Field label="🔒 Repite tu contraseña">
+                <input
+                  type="password" value={form.password2} onChange={e => set('password2', e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base font-medium focus:outline-none input-gol"
+                />
+              </Field>
+
+              {error && (
+                <div className="bg-red-50 border-l-4 border-[#C8102E] text-red-700 rounded-xl px-4 py-3 text-sm font-medium">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={cargando}
+                className="w-full btn-mundial text-white font-black py-3.5 rounded-xl text-base uppercase tracking-wide shadow-lg disabled:opacity-50 font-display"
+              >
+                {cargando ? 'Creando cuenta...' : 'Crear mi cuenta →'}
+              </button>
+            </form>
+
+            <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+              <p className="text-gray-500 text-sm">
+                ¿Ya tienes cuenta?{' '}
+                <Link href="/auth/login" className="text-[#003DA5] font-bold hover:text-[#C8102E] transition-colors">
+                  Entrar aquí
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#C8102E]" />
+      {/* Banda inferior */}
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#C8102E] via-[#FF2040] to-[#C8102E]" />
     </div>
   )
 }
