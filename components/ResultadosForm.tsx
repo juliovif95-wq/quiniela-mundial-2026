@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { bandera } from '@/lib/banderas'
+import Bandera from '@/components/Bandera'
 
 type Fase = { id: string; nombre: string; estado: string }
 type Partido = {
@@ -16,9 +16,13 @@ const ORDEN_GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 function formatFecha(iso: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString('es-MX', {
-    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Mazatlan',
+  const fecha = d.toLocaleDateString('es-MX', {
+    weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Mazatlan',
   })
+  const hora = d.toLocaleTimeString('es-MX', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mazatlan',
+  })
+  return `${fecha} · ${hora} hrs`
 }
 
 export default function ResultadosForm({ fases, partidos }: Props) {
@@ -164,9 +168,9 @@ export default function ResultadosForm({ fases, partidos }: Props) {
                   </div>
 
                   <div className="px-4 py-3 flex items-center gap-2">
-                    <div className="flex-1 text-right">
-                      <span className="text-lg">{bandera(partido.equipo_local)}</span>
-                      <span className="font-bold text-gray-800 text-sm ml-1">{partido.equipo_local}</span>
+                    <div className="flex-1 text-right flex items-center justify-end gap-1.5">
+                      <span className="font-bold text-gray-800 text-sm">{partido.equipo_local}</span>
+                      <Bandera pais={partido.equipo_local} size={16} />
                     </div>
 
                     {yaCapturado ? (
@@ -189,9 +193,9 @@ export default function ResultadosForm({ fases, partidos }: Props) {
                       </div>
                     )}
 
-                    <div className="flex-1">
+                    <div className="flex-1 flex items-center gap-1.5">
+<Bandera pais={partido.equipo_visitante} size={16} />
                       <span className="font-bold text-gray-800 text-sm">{partido.equipo_visitante}</span>
-                      <span className="text-lg ml-1">{bandera(partido.equipo_visitante)}</span>
                     </div>
                   </div>
 

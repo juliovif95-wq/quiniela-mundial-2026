@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { bandera } from '@/lib/banderas'
+import Bandera from '@/components/Bandera'
 import SiluetaJugador from '@/components/SiluetaJugador'
 
 type Partido = {
@@ -21,9 +21,13 @@ const ORDEN_GRUPOS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 function formatFecha(iso: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString('es-MX', {
-    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Mazatlan',
+  const fecha = d.toLocaleDateString('es-MX', {
+    weekday: 'short', day: 'numeric', month: 'short', timeZone: 'America/Mazatlan',
   })
+  const hora = d.toLocaleTimeString('es-MX', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Mazatlan',
+  })
+  return `${fecha} · ${hora} hrs`
 }
 
 export default function PrediccionesForm({
@@ -263,9 +267,9 @@ export default function PrediccionesForm({
                     />
 
                     {/* Equipo local */}
-                    <div className="flex-1 text-right">
-                      <span className="text-lg mr-1">{bandera(partido.equipo_local)}</span>
-                      <span className="font-bold text-gray-800 text-sm">{partido.equipo_local}</span>
+                    <div className="flex-1 text-right flex items-center justify-end gap-1.5">
+                      <span className="font-bold text-gray-800 text-sm leading-tight">{partido.equipo_local}</span>
+                      <Bandera pais={partido.equipo_local} size={16} />
                     </div>
 
                     {/* Marcador */}
@@ -304,9 +308,9 @@ export default function PrediccionesForm({
                     </div>
 
                     {/* Equipo visitante */}
-                    <div className="flex-1">
-                      <span className="font-bold text-gray-800 text-sm">{partido.equipo_visitante}</span>
-                      <span className="text-lg ml-1">{bandera(partido.equipo_visitante)}</span>
+                    <div className="flex-1 flex items-center gap-1.5">
+                      <Bandera pais={partido.equipo_visitante} size={16} />
+                      <span className="font-bold text-gray-800 text-sm leading-tight">{partido.equipo_visitante}</span>
                     </div>
                   </div>
 
@@ -394,9 +398,10 @@ export default function PrediccionesForm({
                     <div key={partido.id} className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
                       <p className="text-xs text-gray-400 mb-1.5">{formatFecha(partido.fecha)}</p>
                       <div className="flex items-center gap-2">
-                        <span className="flex-1 text-right text-sm font-semibold text-gray-800">
-                          {bandera(partido.equipo_local)} {partido.equipo_local}
-                        </span>
+                        <div className="flex-1 text-right flex items-center justify-end gap-1">
+                          <span className="text-sm font-semibold text-gray-800">{partido.equipo_local}</span>
+                          <Bandera pais={partido.equipo_local} size={14} />
+                        </div>
                         {tieneResultado && pred ? (
                           <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-black ${
                             pred.puntos_obtenidos === 3 ? 'bg-yellow-100 text-yellow-700' :
@@ -412,9 +417,10 @@ export default function PrediccionesForm({
                             {pred.goles_local_predicho}–{pred.goles_visitante_predicho}
                           </div>
                         ) : null}
-                        <span className="flex-1 text-sm font-semibold text-gray-800">
-                          {partido.equipo_visitante} {bandera(partido.equipo_visitante)}
-                        </span>
+                        <div className="flex-1 flex items-center gap-1">
+                          <Bandera pais={partido.equipo_visitante} size={14} />
+                          <span className="text-sm font-semibold text-gray-800">{partido.equipo_visitante}</span>
+                        </div>
                       </div>
                     </div>
                   )
