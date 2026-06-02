@@ -1,9 +1,9 @@
 export default function InformacionPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{background: "linear-gradient(135deg, #0D2D6B 0%, #0a1e4a 50%, #061230 100%)"}}>
-      <div className="absolute inset-0 flex flex-wrap content-start gap-8 p-8 opacity-10 pointer-events-none text-5xl">
-        {["🇲🇽","🇺🇸","🇧🇷","🇦🇷","🇫🇷","🇩🇪","🇪🇸","🇵🇹","🇯🇵","🇰🇷","🇮🇹","🇳🇱","🇨🇦","🇺🇾","🇨🇴","🇬🇭","🇸🇦","🇳🇬"].map((f, i) => (
-          <span key={i}>{f}</span>
+      <div className="absolute inset-0 flex flex-wrap content-start gap-8 p-8 opacity-10 pointer-events-none">
+        {["mx","us","br","ar","fr","de","es","pt","jp","kr","nl","ca","uy","co","gh","sa","ma","tr"].map((c, i) => (
+          <img key={i} src={`/banderas/${c}.svg`} alt="" width={48} height={32} />
         ))}
       </div>
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-2xl gap-6">
