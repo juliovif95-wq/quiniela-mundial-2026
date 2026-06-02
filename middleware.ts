@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rutas públicas: login, registro, página principal
-  const rutasPublicas = ['/', '/auth/login', '/auth/registro']
+  const rutasPublicas = ['/', '/auth/login', '/auth/registro', '/informacion']
   const esRutaPublica = rutasPublicas.includes(pathname)
 
   // Si no está autenticado y la ruta no es pública → redirigir al login
