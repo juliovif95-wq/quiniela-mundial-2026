@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import PrediccionesForm from '@/components/PrediccionesForm'
 import ResumenPuntos from '@/components/ResumenPuntos'
+import BannerFechasLimite from '@/components/BannerFechasLimite'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -59,6 +60,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <ResumenPuntos total={totalPuntos} />
+      <BannerFechasLimite />
 
       <div className="mt-4 mb-6">
         <div className="flex items-center gap-2 mb-1">
