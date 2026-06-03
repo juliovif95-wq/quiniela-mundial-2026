@@ -10,8 +10,15 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-  title: "Quiniela Mundial 2026",
+  metadataBase: new URL("https://mundialenmicolegio.com"),
+  title: "Mundialito Escolar 2026",
   description: "Adivina los resultados del Mundial 2026 y compite con tus compañeros",
+  openGraph: {
+    title: "Mundialito Escolar 2026",
+    description: "Adivina los resultados del Mundial 2026 y compite con tus compañeros",
+    images: ["/og-image.png"],
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
