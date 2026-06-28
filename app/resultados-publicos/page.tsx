@@ -60,6 +60,64 @@ export default async function ResultadosPublicosPage() {
           <p className="text-white/50 text-xs mt-2 tracking-widest">mundialenmicolegio.com</p>
         </div>
 
+        {/* Sección: Ranking */}
+        <section>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-[#FFD700] flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-lg">🏆</span>
+            </div>
+            <div>
+              <h2 className="text-white font-black text-lg leading-none uppercase tracking-wide">Ranking</h2>
+              <p className="text-white/40 text-xs">{ESCUELA_NOMBRE}</p>
+            </div>
+          </div>
+
+          {(ranking ?? []).length === 0 ? (
+            <div className="bg-white/10 rounded-2xl p-8 text-center text-white/50">
+              <p className="text-4xl mb-3">🏆</p>
+              <p className="font-bold">Aún no hay puntos registrados.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl overflow-hidden shadow-xl">
+              {/* Header tabla */}
+              <div className="bg-[#002070] text-white px-4 py-3 flex items-center text-xs font-black uppercase tracking-wider">
+                <span className="w-10">#</span>
+                <span className="flex-1">Participante</span>
+                <span className="hidden sm:block w-24 text-center">Grado</span>
+                <span className="w-14 text-right">Pts</span>
+              </div>
+
+              {(ranking ?? []).map((r, i) => {
+                const pos = Number(r.posicion)
+                const esMaestro = tipoMap[r.usuario_id] === 'maestro'
+                return (
+                  <div
+                    key={r.usuario_id}
+                    className={`flex items-center px-4 py-3 border-b border-gray-50 ${
+                      i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                    }`}
+                  >
+                    <span className={`w-10 text-base font-black ${pos <= 3 ? '' : 'text-gray-400 text-sm'}`}>
+                      {medallas[pos] ?? pos}
+                    </span>
+                    <span className="flex-1 text-sm font-bold text-gray-800 leading-tight">
+                      {r.nombre_completo}
+                      {esMaestro && (
+                        <span className="ml-1.5 badge-maestro">Maestro</span>
+                      )}
+                    </span>
+                    <span className="hidden sm:block w-24 text-center text-xs text-gray-400">{r.grado}</span>
+                    <span className="w-14 text-right text-lg font-black text-gray-700">{r.puntos_totales}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Divisor */}
+        <div className="h-px bg-white/10" />
+
         {/* Sección: Resultados */}
         <section>
           <div className="flex items-center gap-3 mb-4">
@@ -119,64 +177,6 @@ export default async function ResultadosPublicosPage() {
                         </span>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Divisor */}
-        <div className="h-px bg-white/10" />
-
-        {/* Sección: Ranking */}
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 rounded-xl bg-[#FFD700] flex items-center justify-center shadow-lg flex-shrink-0">
-              <span className="text-lg">🏆</span>
-            </div>
-            <div>
-              <h2 className="text-white font-black text-lg leading-none uppercase tracking-wide">Ranking</h2>
-              <p className="text-white/40 text-xs">{ESCUELA_NOMBRE}</p>
-            </div>
-          </div>
-
-          {(ranking ?? []).length === 0 ? (
-            <div className="bg-white/10 rounded-2xl p-8 text-center text-white/50">
-              <p className="text-4xl mb-3">🏆</p>
-              <p className="font-bold">Aún no hay puntos registrados.</p>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl overflow-hidden shadow-xl">
-              {/* Header tabla */}
-              <div className="bg-[#002070] text-white px-4 py-3 flex items-center text-xs font-black uppercase tracking-wider">
-                <span className="w-10">#</span>
-                <span className="flex-1">Participante</span>
-                <span className="hidden sm:block w-24 text-center">Grado</span>
-                <span className="w-14 text-right">Pts</span>
-              </div>
-
-              {(ranking ?? []).map((r, i) => {
-                const pos = Number(r.posicion)
-                const esMaestro = tipoMap[r.usuario_id] === 'maestro'
-                return (
-                  <div
-                    key={r.usuario_id}
-                    className={`flex items-center px-4 py-3 border-b border-gray-50 ${
-                      i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                    }`}
-                  >
-                    <span className={`w-10 text-base font-black ${pos <= 3 ? '' : 'text-gray-400 text-sm'}`}>
-                      {medallas[pos] ?? pos}
-                    </span>
-                    <span className="flex-1 text-sm font-bold text-gray-800 leading-tight">
-                      {r.nombre_completo}
-                      {esMaestro && (
-                        <span className="ml-1.5 badge-maestro">Maestro</span>
-                      )}
-                    </span>
-                    <span className="hidden sm:block w-24 text-center text-xs text-gray-400">{r.grado}</span>
-                    <span className="w-14 text-right text-lg font-black text-gray-700">{r.puntos_totales}</span>
                   </div>
                 )
               })}
