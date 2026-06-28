@@ -30,14 +30,18 @@ function formatFecha(iso: string) {
   return `${fecha} · ${hora} hrs`
 }
 
+function fechaCorta(iso: string) {
+  return new Date(iso).toLocaleDateString('es-MX', {
+    day: 'numeric', month: 'short', timeZone: 'America/Mazatlan',
+  })
+}
+
 export default function PrediccionesForm({
   partidos, prediccionesGuardadas, usuarioId, faseCerrada
 }: Props) {
-  // Mapa inicial de predicciones guardadas
   const predMap: Record<string, Prediccion> = {}
   prediccionesGuardadas.forEach(p => { predMap[p.partido_id] = p })
 
-  // Estado local de valores ingresados (no guardados aún)
   const [valores, setValores] = useState<Record<string, { local: string; visitante: string }>>(() => {
     const m: Record<string, { local: string; visitante: string }> = {}
     prediccionesGuardadas.forEach(p => {
@@ -49,17 +53,21 @@ export default function PrediccionesForm({
     return m
   })
 
-  // Partidos agrupados por grupo
+  // Detectar si es fase eliminatoria (partidos sin grupo)
+  const esEliminatoria = partidos.length > 0 && partidos.every(p => !p.grupo)
+
+  // Agrupar por letra de grupo (fase de grupos) o por fecha corta (eliminatorias)
   const porGrupo: Record<string, Partido[]> = {}
   partidos.forEach(p => {
-    if (!porGrupo[p.grupo]) porGrupo[p.grupo] = []
-    porGrupo[p.grupo].push(p)
+    const clave = esEliminatoria ? fechaCorta(p.fecha) : p.grupo
+    if (!porGrupo[clave]) porGrupo[clave] = []
+    porGrupo[clave].push(p)
   })
-  const grupos = ORDEN_GRUPOS.filter(g => porGrupo[g])
+  const grupos = esEliminatoria
+    ? [...new Set(partidos.map(p => fechaCorta(p.fecha)))]
+    : ORDEN_GRUPOS.filter(g => porGrupo[g])
 
-  // Grupo actual
   const [grupoIdx, setGrupoIdx] = useState(() => {
-    // Empezar en el primer grupo sin predecir todo
     const primerIncompleto = grupos.findIndex(g =>
       (porGrupo[g] ?? []).some(p => !predMap[p.id])
     )
@@ -73,7 +81,6 @@ export default function PrediccionesForm({
   const grupoActual = grupos[grupoIdx]
   const partidosGrupo = porGrupo[grupoActual] ?? []
 
-  // Funciones de estado de grupo
   function grupoCompleto(g: string) {
     return (porGrupo[g] ?? []).every(p => predMap[p.id])
   }
@@ -101,14 +108,12 @@ export default function PrediccionesForm({
     })
 
     if (sinPred.length > 0) {
-      setErrorGrupo(`Faltan ${sinPred.length} partido${sinPred.length > 1 ? 's' : ''} por predecir en este grupo.`)
+      setErrorGrupo(`Faltan ${sinPred.length} partido${sinPred.length > 1 ? 's' : ''} por predecir.`)
       return
     }
 
-    // Solo guardar los que no están guardados aún
     const nuevos = partidosGrupo.filter(p => !predMap[p.id])
     if (nuevos.length === 0) {
-      // Ya todo guardado, avanzar al siguiente grupo
       if (grupoIdx < grupos.length - 1) setGrupoIdx(grupoIdx + 1)
       return
     }
@@ -132,7 +137,6 @@ export default function PrediccionesForm({
       return
     }
 
-    // Actualizar predMap localmente
     nuevos.forEach(p => {
       predMap[p.id] = {
         partido_id: p.id,
@@ -142,10 +146,9 @@ export default function PrediccionesForm({
       }
     })
 
-    setMensajeGrupo(`✅ Grupo ${grupoActual} guardado`)
+    setMensajeGrupo(esEliminatoria ? `✅ ${grupoActual} guardado` : `✅ Grupo ${grupoActual} guardado`)
     setGuardando(false)
 
-    // Avanzar al siguiente grupo si hay más
     setTimeout(() => {
       setMensajeGrupo('')
       if (grupoIdx < grupos.length - 1) setGrupoIdx(grupoIdx + 1)
@@ -153,17 +156,19 @@ export default function PrediccionesForm({
     }, 900)
   }
 
-  const todosCompletos = grupos.every(g => grupoCompleto(g))
+  const todosCompletos = grupos.length > 0 && grupos.every(g => grupoCompleto(g))
   const esUltimoGrupo = grupoIdx === grupos.length - 1
 
   return (
     <div>
-      {/* Barra de progreso de grupos */}
+      {/* Barra de progreso */}
       <div className="bg-white rounded-2xl p-4 shadow-md mb-5 border border-gray-100">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-black text-gray-500 uppercase tracking-wider">Progreso por grupo</p>
+          <p className="text-xs font-black text-gray-500 uppercase tracking-wider">
+            {esEliminatoria ? 'Progreso por jornada' : 'Progreso por grupo'}
+          </p>
           <p className="text-xs text-gray-400">
-            {grupos.filter(g => grupoCompleto(g)).length} / {grupos.length} grupos
+            {grupos.filter(g => grupoCompleto(g)).length} / {grupos.length} {esEliminatoria ? 'jornadas' : 'grupos'}
           </p>
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -178,8 +183,9 @@ export default function PrediccionesForm({
                 onClick={() => accesible && setGrupoIdx(i)}
                 disabled={!accesible}
                 className={`
-                  flex-shrink-0 w-9 h-9 rounded-full text-xs font-black transition-all
+                  flex-shrink-0 h-9 rounded-full text-xs font-black transition-all
                   flex items-center justify-center
+                  ${esEliminatoria ? 'px-3' : 'w-9'}
                   ${completo
                     ? 'bg-green-500 text-white shadow-md hover-lift'
                     : esActual
@@ -196,11 +202,11 @@ export default function PrediccionesForm({
           })}
         </div>
 
-        {/* Barra de progreso lineal */}
+        {/* Barra lineal */}
         <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-[#003DA5] to-green-500 rounded-full transition-all duration-500"
-            style={{ width: `${(grupos.filter(g => grupoCompleto(g)).length / grupos.length) * 100}%` }}
+            style={{ width: `${grupos.length > 0 ? (grupos.filter(g => grupoCompleto(g)).length / grupos.length) * 100 : 0}%` }}
           />
         </div>
       </div>
@@ -214,16 +220,18 @@ export default function PrediccionesForm({
         </div>
       )}
 
-      {/* Encabezado del grupo actual */}
+      {/* Encabezado de la jornada/grupo actual */}
       {!todosCompletos && (
         <>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#003DA5] flex items-center justify-center shadow-md">
-                <span className="text-white font-black text-lg">{grupoActual}</span>
+              <div className={`h-10 rounded-xl bg-[#003DA5] flex items-center justify-center shadow-md ${esEliminatoria ? 'px-3' : 'w-10'}`}>
+                <span className={`text-white font-black ${esEliminatoria ? 'text-xs' : 'text-lg'}`}>{grupoActual}</span>
               </div>
               <div>
-                <p className="font-black text-gray-800 text-lg">Grupo {grupoActual}</p>
+                <p className="font-black text-gray-800 text-lg">
+                  {esEliminatoria ? grupoActual : `Grupo ${grupoActual}`}
+                </p>
                 <p className="text-gray-400 text-xs">
                   {partidosGrupo.filter(p => predMap[p.id]).length} / {partidosGrupo.length} partidos predichos
                 </p>
@@ -236,7 +244,7 @@ export default function PrediccionesForm({
             )}
           </div>
 
-          {/* Partidos del grupo */}
+          {/* Partidos de la jornada/grupo */}
           <div className="space-y-3 mb-5">
             {partidosGrupo.map(partido => {
               const pred = predMap[partido.id]
@@ -251,7 +259,6 @@ export default function PrediccionesForm({
                     guardado ? 'border-green-200' : tieneResultado ? 'border-gray-200' : 'border-gray-100'
                   }`}
                 >
-                  {/* Fecha */}
                   <div className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wide ${
                     guardado ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'
                   }`}>
@@ -260,19 +267,16 @@ export default function PrediccionesForm({
                   </div>
 
                   <div className="px-4 py-3 flex items-center gap-2 relative">
-                    {/* Silueta decorativa de fondo */}
                     <SiluetaJugador
                       pose="chuta"
                       className="absolute right-2 top-1/2 -translate-y-1/2 h-12 text-gray-100 pointer-events-none"
                     />
 
-                    {/* Equipo local */}
                     <div className="flex-1 text-right flex items-center justify-end gap-1.5">
                       <span className="font-bold text-gray-800 text-sm leading-tight">{partido.equipo_local}</span>
                       <Bandera pais={partido.equipo_local} size={16} />
                     </div>
 
-                    {/* Marcador */}
                     <div className="flex-shrink-0 flex items-center gap-1.5 z-10">
                       {tieneResultado ? (
                         <div className="flex items-center gap-1.5 bg-gray-100 rounded-xl px-3 py-1.5">
@@ -307,14 +311,12 @@ export default function PrediccionesForm({
                       )}
                     </div>
 
-                    {/* Equipo visitante */}
                     <div className="flex-1 flex items-center gap-1.5">
                       <Bandera pais={partido.equipo_visitante} size={16} />
                       <span className="font-bold text-gray-800 text-sm leading-tight">{partido.equipo_visitante}</span>
                     </div>
                   </div>
 
-                  {/* Puntos obtenidos */}
                   {tieneResultado && pred && (
                     <div className={`px-4 py-1.5 text-center text-xs font-black ${
                       pred.puntos_obtenidos === 3 ? 'bg-yellow-50 text-yellow-600' :
@@ -363,15 +365,19 @@ export default function PrediccionesForm({
                   {guardando
                     ? 'Guardando...'
                     : grupoCompleto(grupoActual)
-                      ? esUltimoGrupo ? '✓ Todo guardado' : `Siguiente → Grupo ${grupos[grupoIdx + 1]}`
-                      : esUltimoGrupo ? 'Guardar Grupo ' + grupoActual : `Guardar y avanzar a Grupo ${grupos[grupoIdx + 1]}`
+                      ? esUltimoGrupo
+                        ? '✓ Todo guardado'
+                        : `Siguiente → ${esEliminatoria ? '' : 'Grupo '}${grupos[grupoIdx + 1]}`
+                      : esUltimoGrupo
+                        ? `Guardar ${esEliminatoria ? grupoActual : 'Grupo ' + grupoActual}`
+                        : `Guardar y avanzar → ${esEliminatoria ? '' : 'Grupo '}${grupos[grupoIdx + 1]}`
                   }
                 </button>
               </div>
 
               {!grupoLleno(grupoActual) && (
                 <p className="text-center text-xs text-gray-400 mt-2">
-                  Debes predecir todos los partidos del Grupo {grupoActual} antes de continuar
+                  Debes predecir todos los partidos {esEliminatoria ? `del ${grupoActual}` : `del Grupo ${grupoActual}`} antes de continuar
                 </p>
               )}
             </div>
@@ -379,7 +385,7 @@ export default function PrediccionesForm({
         </>
       )}
 
-      {/* Vista de todos los grupos completados (modo repaso) */}
+      {/* Vista de repaso (todos completados) */}
       {todosCompletos && (
         <div className="space-y-6 mt-2">
           {grupos.map(g => (
@@ -388,7 +394,9 @@ export default function PrediccionesForm({
                 <div className="w-7 h-7 rounded-lg bg-green-500 flex items-center justify-center">
                   <span className="text-white text-xs font-black">✓</span>
                 </div>
-                <h3 className="font-black text-gray-700 text-sm uppercase tracking-wide">Grupo {g}</h3>
+                <h3 className="font-black text-gray-700 text-sm uppercase tracking-wide">
+                  {esEliminatoria ? g : `Grupo ${g}`}
+                </h3>
               </div>
               <div className="space-y-2">
                 {(porGrupo[g] ?? []).map(partido => {

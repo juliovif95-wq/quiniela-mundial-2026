@@ -25,6 +25,12 @@ function formatFecha(iso: string) {
   return `${fecha} · ${hora} hrs`
 }
 
+function fechaCorta(iso: string) {
+  return new Date(iso).toLocaleDateString('es-MX', {
+    day: 'numeric', month: 'short', timeZone: 'America/Mazatlan',
+  })
+}
+
 export default function ResultadosForm({ fases, partidos }: Props) {
   const [faseSeleccionada, setFaseSeleccionada] = useState(fases[0]?.id ?? '')
   const [resultados, setResultados] = useState<Record<string, { local: string; visitante: string }>>({})
@@ -33,12 +39,18 @@ export default function ResultadosForm({ fases, partidos }: Props) {
 
   const partidosFase = partidos.filter(p => p.fase_id === faseSeleccionada)
 
+  // Detectar si es fase eliminatoria (partidos sin grupo)
+  const esEliminatoria = partidosFase.length > 0 && partidosFase.every(p => !p.grupo)
+
   const porGrupo: Record<string, Partido[]> = {}
   partidosFase.forEach(p => {
-    if (!porGrupo[p.grupo]) porGrupo[p.grupo] = []
-    porGrupo[p.grupo].push(p)
+    const clave = esEliminatoria ? fechaCorta(p.fecha) : p.grupo
+    if (!porGrupo[clave]) porGrupo[clave] = []
+    porGrupo[clave].push(p)
   })
-  const grupos = ORDEN_GRUPOS.filter(g => porGrupo[g])
+  const grupos = esEliminatoria
+    ? [...new Set(partidosFase.map(p => fechaCorta(p.fecha)))]
+    : ORDEN_GRUPOS.filter(g => porGrupo[g])
 
   const [grupoIdx, setGrupoIdx] = useState(0)
   const grupoActual = grupos[grupoIdx] ?? grupos[0]
@@ -104,10 +116,12 @@ export default function ResultadosForm({ fases, partidos }: Props) {
 
       {grupos.length > 0 && (
         <>
-          {/* Barra de progreso de grupos */}
+          {/* Barra de progreso */}
           <div className="bg-white rounded-2xl p-4 shadow mb-5 border border-gray-100">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-black text-gray-500 uppercase tracking-wider">Grupos con resultados</p>
+              <p className="text-xs font-black text-gray-500 uppercase tracking-wider">
+                {esEliminatoria ? 'Jornadas con resultados' : 'Grupos con resultados'}
+              </p>
               <p className="text-xs text-gray-400">
                 {grupos.filter(g => grupoCompleto(g)).length} / {grupos.length}
               </p>
@@ -118,7 +132,9 @@ export default function ResultadosForm({ fases, partidos }: Props) {
                 const esActual = i === grupoIdx
                 return (
                   <button key={g} onClick={() => setGrupoIdx(i)}
-                    className={`w-9 h-9 rounded-full text-xs font-black transition-all flex items-center justify-center hover-lift ${
+                    className={`h-9 rounded-full text-xs font-black transition-all flex items-center justify-center hover-lift ${
+                      esEliminatoria ? 'px-3' : 'w-9'
+                    } ${
                       completo
                         ? 'bg-green-500 text-white shadow'
                         : esActual
@@ -138,20 +154,22 @@ export default function ResultadosForm({ fases, partidos }: Props) {
             </div>
           </div>
 
-          {/* Encabezado del grupo */}
+          {/* Encabezado del grupo/jornada */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#111827] flex items-center justify-center shadow">
-              <span className="text-white font-black text-lg">{grupoActual}</span>
+            <div className={`h-10 rounded-xl bg-[#111827] flex items-center justify-center shadow ${esEliminatoria ? 'px-3' : 'w-10'}`}>
+              <span className={`text-white font-black ${esEliminatoria ? 'text-xs' : 'text-lg'}`}>{grupoActual}</span>
             </div>
             <div>
-              <p className="font-black text-gray-800 text-lg">Grupo {grupoActual}</p>
+              <p className="font-black text-gray-800 text-lg">
+                {esEliminatoria ? grupoActual : `Grupo ${grupoActual}`}
+              </p>
               <p className="text-gray-400 text-xs">
                 {partidosGrupo.filter(p => p.goles_local_real !== null).length} / {partidosGrupo.length} resultados ingresados
               </p>
             </div>
           </div>
 
-          {/* Partidos del grupo */}
+          {/* Partidos */}
           <div className="space-y-3 mb-5">
             {partidosGrupo.map(partido => {
               const yaCapturado = partido.goles_local_real !== null
@@ -194,7 +212,7 @@ export default function ResultadosForm({ fases, partidos }: Props) {
                     )}
 
                     <div className="flex-1 flex items-center gap-1.5">
-<Bandera pais={partido.equipo_visitante} size={16} />
+                      <Bandera pais={partido.equipo_visitante} size={16} />
                       <span className="font-bold text-gray-800 text-sm">{partido.equipo_visitante}</span>
                     </div>
                   </div>
@@ -224,7 +242,7 @@ export default function ResultadosForm({ fases, partidos }: Props) {
             })}
           </div>
 
-          {/* Navegación entre grupos */}
+          {/* Navegación entre grupos/jornadas */}
           <div className="flex gap-2">
             {grupoIdx > 0 && (
               <button onClick={() => setGrupoIdx(grupoIdx - 1)}
@@ -235,7 +253,7 @@ export default function ResultadosForm({ fases, partidos }: Props) {
             {grupoIdx < grupos.length - 1 && (
               <button onClick={() => setGrupoIdx(grupoIdx + 1)}
                 className="flex-1 bg-[#111827] hover:bg-gray-800 text-white font-bold py-3 rounded-2xl text-sm transition-colors">
-                Siguiente → Grupo {grupos[grupoIdx + 1]}
+                Siguiente → {esEliminatoria ? '' : 'Grupo '}{grupos[grupoIdx + 1]}
               </button>
             )}
           </div>
