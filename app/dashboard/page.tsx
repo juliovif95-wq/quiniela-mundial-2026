@@ -9,14 +9,12 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  // Fase actualmente abierta
-  const { data: fase } = await supabase
+  // Todas las fases actualmente abiertas
+  const { data: fases } = await supabase
     .from('fases')
     .select('*')
     .eq('estado', 'abierta')
     .order('orden')
-    .limit(1)
-    .single()
 
   // Puntos totales del alumno
   const { data: puntos } = await supabase
@@ -26,7 +24,7 @@ export default async function DashboardPage() {
 
   const totalPuntos = (puntos ?? []).reduce((sum, p) => sum + (p.puntos_obtenidos ?? 0), 0)
 
-  if (!fase) {
+  if (!fases || fases.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-5xl mb-4">🏆</div>
@@ -41,53 +39,60 @@ export default async function DashboardPage() {
     )
   }
 
-  // Partidos de la fase abierta
+  // Partidos de todas las fases abiertas
   const { data: partidos } = await supabase
     .from('partidos')
     .select('*')
-    .eq('fase_id', fase.id)
+    .in('fase_id', fases.map(f => f.id))
     .order('fecha')
 
-  // Predicciones ya guardadas del alumno
+  // Predicciones ya guardadas del alumno para esos partidos
   const { data: predicciones } = await supabase
     .from('predicciones')
     .select('*')
     .eq('usuario_id', user.id)
     .in('partido_id', (partidos ?? []).map(p => p.id))
 
-  const faseCerrada = fase.estado === 'cerrada'
-
   return (
     <div>
       <ResumenPuntos total={totalPuntos} />
       <BannerFechasLimite />
 
-      <div className="mt-4 mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
-            {faseCerrada ? '🔒 Cerrada' : '🟢 Abierta'}
-          </span>
-          <h2 className="text-lg font-bold text-gray-800">{fase.nombre}</h2>
-        </div>
-        {!faseCerrada && (
-          <p className="text-sm text-gray-500">
-            Ingresa el marcador que crees que va a quedar en cada partido antes de que empiece la fase.
-          </p>
-        )}
-        {faseCerrada && (
-          <p className="text-sm text-gray-500">
-            La fase ya comenzó. Tus predicciones están guardadas.
-          </p>
-        )}
-      </div>
+      {fases.map(fase => {
+        const partidosFase = (partidos ?? []).filter(p => p.fase_id === fase.id)
+        const partidosFaseIds = new Set(partidosFase.map(p => p.id))
+        const prediccionesFase = (predicciones ?? []).filter(p => partidosFaseIds.has(p.partido_id))
+        const faseCerrada = fase.estado === 'cerrada'
 
-      <PrediccionesForm
-        partidos={partidos ?? []}
-        prediccionesGuardadas={predicciones ?? []}
-        usuarioId={user.id}
-        faseCerrada={faseCerrada}
-        faseNombre={fase.nombre}
-      />
+        return (
+          <div key={fase.id} className="mt-4 mb-6">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full">
+                {faseCerrada ? '🔒 Cerrada' : '🟢 Abierta'}
+              </span>
+              <h2 className="text-lg font-bold text-gray-800">{fase.nombre}</h2>
+            </div>
+            {!faseCerrada && (
+              <p className="text-sm text-gray-500">
+                Ingresa el marcador que crees que va a quedar en cada partido antes de que empiece la fase.
+              </p>
+            )}
+            {faseCerrada && (
+              <p className="text-sm text-gray-500">
+                La fase ya comenzó. Tus predicciones están guardadas.
+              </p>
+            )}
+
+            <PrediccionesForm
+              partidos={partidosFase}
+              prediccionesGuardadas={prediccionesFase}
+              usuarioId={user.id}
+              faseCerrada={faseCerrada}
+              faseNombre={fase.nombre}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }
